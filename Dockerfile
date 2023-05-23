@@ -1,11 +1,12 @@
-FROM openjdk:8-alpine
+# FROM openjdk:11
+FROM openjdk:17-alpine
 
 # Setup useful environment variables
 ENV CONF_HOME     /var/atlassian/confluence
 ENV CONF_INSTALL  /opt/atlassian/confluence
 ENV CONF_VERSION  8.2.3
 
-ENV JAVA_CACERTS  $JAVA_HOME/jre/lib/security/cacerts
+ENV JAVA_CACERTS  $JAVA_HOME/lib/security/cacerts
 ENV CERTIFICATE   $CONF_HOME/certificate
 
 # Install Atlassian Confluence and helper tools and setup initial home
@@ -17,7 +18,6 @@ RUN set -x \
     && chown daemon:daemon     "${CONF_HOME}" \
     && mkdir -p                "${CONF_INSTALL}/conf" \
     && curl -Ls                "https://www.atlassian.com/software/confluence/downloads/binary/atlassian-confluence-${CONF_VERSION}.tar.gz" | tar -xz --directory "${CONF_INSTALL}" --strip-components=1 --no-same-owner \
-    && curl -Ls                "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.44.tar.gz" | tar -xz --directory "${CONF_INSTALL}/confluence/WEB-INF/lib" --strip-components=1 --no-same-owner "mysql-connector-java-5.1.44/mysql-connector-java-5.1.44-bin.jar" \
     && chmod -R 700            "${CONF_INSTALL}/conf" \
     && chmod -R 700            "${CONF_INSTALL}/temp" \
     && chmod -R 700            "${CONF_INSTALL}/logs" \
@@ -43,6 +43,16 @@ RUN set -x \
 # Use the default unprivileged account. This could be considered bad practice
 # on systems where multiple processes end up being executed by 'daemon' but
 # here we only ever run one process anyway.
+
+# copy mysql-connector
+COPY "mysql-connector-java-8.0.33.jar" /opt/atlassian/confluence/confluence/WEB-INF/lib/
+
+# copy atlassian-agent.jar to confluence home
+COPY "atlassian-agent.jar" /opt/atlassian/confluence/
+
+# export env
+RUN echo 'export CATALINA_OPTS="-javaagent:/opt/atlassian/confluence/atlassian-agent.jar ${CATALINA_OPTS}"' >> /opt/atlassian/confluence/bin/setenv.sh
+
 USER daemon:daemon
 
 # Expose default HTTP connector port.
@@ -57,10 +67,6 @@ VOLUME ["/var/atlassian/confluence", "/opt/atlassian/confluence/logs"]
 WORKDIR /var/atlassian/confluence
 
 COPY docker-entrypoint.sh /
-# copy atlassian-agent.jar to confluence home
-COPY "atlassian-agent.jar" /opt/atlassian/confluence/
-# export env
-RUN echo 'export CATALINA_OPTS="-javaagent:/opt/atlassian/confluence/atlassian-agent.jar ${CATALINA_OPTS}"' >> /opt/atlassian/confluence/bin/setenv.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
