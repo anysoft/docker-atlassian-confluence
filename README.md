@@ -46,3 +46,28 @@ If you see out of date documentation, lack of tests, etc., you can help out by e
 - sending a pull request with modifications (remember to read [contributing guide](https://github.com/cptactionhank/docker-atlassian-confluence/blob/master/CONTRIBUTING.md) before.)
 
 Continuous Integration and Continuous Delivery is made possible with the great services from [GitHub](https://github.com), [Travis CI](https://travis-ci.org/), and [CircleCI](https://circleci.com/) written in [Ruby](https://www.ruby-lang.org/), using [RSpec](http://rspec.info/), [Capybara](https://jnicklas.github.io/capybara/), and [PhantomJS](http://phantomjs.org/) frameworks.
+
+
+# Build & Run
+## Clone
+``` shell
+git clone https://github.com/anysoft/docker-atlassian-confluence.git
+cd docker-atlassian-confluence
+```
+## Build
+
+``` shell
+docker build -t atlassian-confluence:8.2.3 .
+```
+
+## Run
+``` shell
+docker run -d --name atlassian-confluence \
+  --restart always \
+  -p 8090:8090 \
+  -e TZ="Asia/Shanghai" \
+  -v /coins/confluence:/var/atlassian/confluence \
+  atlassian-confluence:8.2.3
+```
+# changelog
+this repository update openjdk and mysql-connect-java version.
