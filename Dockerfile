@@ -57,6 +57,11 @@ VOLUME ["/var/atlassian/confluence", "/opt/atlassian/confluence/logs"]
 WORKDIR /var/atlassian/confluence
 
 COPY docker-entrypoint.sh /
+# copy atlassian-agent.jar to confluence home
+COPY "atlassian-agent.jar" /opt/atlassian/confluence/
+# export env
+RUN echo 'export CATALINA_OPTS="-javaagent:/opt/atlassian/confluence/atlassian-agent.jar ${CATALINA_OPTS}"' >> /opt/atlassian/confluence/bin/setenv.sh
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Run Atlassian Confluence as a foreground process by default.
